@@ -115,6 +115,12 @@ func VerifyProof(rootHash common.Hash, key []byte, proofDb ethdb.KeyValueReader)
 	key = keybytesToHex(key)
 	wantHash := rootHash
 	for i := 0; ; i++ {
+
+		fmt.Println("for-for-for-for")
+		fmt.Println("wantHash[:] ", wantHash[:])
+		fmt.Println("wantHash[:] ", wantHash.Hex())
+		fmt.Println("for-for-for-for")
+
 		buf, _ := proofDb.Get(wantHash[:])
 		if buf == nil {
 			return nil, fmt.Errorf("proof node %d (hash %064x) missing", i, wantHash)
@@ -129,10 +135,19 @@ func VerifyProof(rootHash common.Hash, key []byte, proofDb ethdb.KeyValueReader)
 			// The trie doesn't contain the key.
 			return nil, nil
 		case hashNode:
+			fmt.Println("hashNode-hashNode-hashNode")
+			fmt.Println("wantHash[:] ", cld[:])
+			fmt.Println("wantHash[:] ", cld.String())
+			fmt.Println("hashNode-hashNode-hashNode")
 			key = keyrest
 			copy(wantHash[:], cld)
 		case valueNode:
+			fmt.Println("valueNode-valueNode-valueNode")
+			fmt.Println("wantHash[:] ", cld[:])
+			fmt.Println("wantHash[:] ", cld.String())
+			fmt.Println("valueNode-valueNode-valueNode")
 			return cld, nil
+
 		}
 	}
 }

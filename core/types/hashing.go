@@ -18,6 +18,8 @@ package types
 
 import (
 	"bytes"
+	"encoding/hex"
+	"fmt"
 	"sync"
 
 	"github.com/ethereum/go-ethereum/common"
@@ -97,6 +99,13 @@ func DeriveSha(list DerivableList, hasher TrieHasher) common.Hash {
 	for i := 1; i < list.Len() && i <= 0x7f; i++ {
 		indexBuf = rlp.AppendUint64(indexBuf[:0], uint64(i))
 		value := encodeForDerive(list, i, valueBuf)
+
+		if i == 1 {
+			fmt.Println("oooooooooooooo 1111111")
+			fmt.Println(hex.EncodeToString(value))
+			fmt.Println("oooooooooooooo 1111111")
+		}
+
 		hasher.Update(indexBuf, value)
 	}
 	if list.Len() > 0 {
