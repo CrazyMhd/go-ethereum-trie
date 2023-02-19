@@ -18,10 +18,15 @@ package trie
 
 import (
 	"bytes"
+	"context"
 	crand "crypto/rand"
 	"encoding/binary"
+	"fmt"
+	"github.com/ethereum/go-ethereum/core/types"
+	"github.com/ethereum/go-ethereum/rlp"
 	mrand "math/rand"
 	"sort"
+	"sync"
 	"testing"
 
 	"github.com/ethereum/go-ethereum/common"
@@ -1095,4 +1100,69 @@ func TestRangeProofKeysWithSharedPrefix(t *testing.T) {
 	if more != false {
 		t.Error("expected more to be false")
 	}
+}
+
+func TestReciptRoot(t *testing.T) {
+	t.Log("We are calling khiar")
+	fmt.Println("We are calling khiar")
+	khiar()
+}
+
+func khiar() {
+
+	rawUrl := "https://mainnet.infura.io/v3/5e179d57f16540cca8fbb67b8e6fbb11"
+	bd := NewBlockchainData(rawUrl)
+
+	fmt.Println("Before calling first api")
+
+	ctx := context.Background()
+	theReceipts, err := bd.GetTxReceiptsOfABlock(ctx, "0x574634b50a31a961d8cd4eb4f51142f0d66df9edd299ea8649b22fbe36b6abce")
+	if err != nil {
+		fmt.Println(err)
+	}
+	fmt.Println(theReceipts)
+
+	valueBuf := encodeBufferPool.Get().(*bytes.Buffer)
+	defer encodeBufferPool.Put(valueBuf)
+
+	var indexBuf []byte
+
+	fmt.Println("^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^")
+	fmt.Println("^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^")
+	fmt.Println("^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^")
+	fmt.Println("^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^")
+
+	//myTrie := trie.NewStackTrie(nil)
+	myTrie := NewEmpty(nil)
+
+	receiptSha := types.DeriveSha(theReceipts, myTrie)
+
+	proverFunc := func(key []byte) *memorydb.Database {
+		proof := memorydb.New()
+		myTrie.Prove(key, 0, proof)
+		return proof
+	}
+
+	//var indexBuf []byte
+	indexBuf = rlp.AppendUint64(indexBuf[:0], uint64(1))
+
+	theProof := proverFunc(indexBuf)
+
+	fmt.Println("---------------")
+	fmt.Println(theProof.Len())
+	fmt.Println(theProof)
+	fmt.Println("---------------")
+
+	theValue, err := VerifyProof(common.HexToHash("640cfc3185e06117ff24970a5849ad1186de516801af8fb05104e78700a8d89b"), indexBuf, theProof)
+	if err != nil {
+		fmt.Println("the err: ", err)
+	}
+
+	fmt.Println("theValue: ", theValue)
+	//
+	fmt.Println("receiptSha", receiptSha)
+}
+
+var encodeBufferPool = sync.Pool{
+	New: func() interface{} { return new(bytes.Buffer) },
 }
