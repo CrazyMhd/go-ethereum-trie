@@ -21,6 +21,7 @@ import (
 	"context"
 	crand "crypto/rand"
 	"encoding/binary"
+	"encoding/hex"
 	"fmt"
 	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/rlp"
@@ -1169,7 +1170,30 @@ func khiar() {
 		fmt.Println("the err: ", err)
 	}
 
-	fmt.Println("theValue: ", theValue)
+	fmt.Printf("indexBuf (binary): %b \n", indexBuf)
+	fmt.Println("indexBuf (byte array):", indexBuf)
+	fmt.Println("indexBuf (hex):", hex.EncodeToString(indexBuf))
+
+	theValueStr := ""
+
+	for i, singleValue := range theValue {
+		if i == 0 {
+			theValueStr = fmt.Sprintf("[%s", theValueStr)
+		}
+		singleValueModified := fmt.Sprintf("\"%s\"", singleValue)
+
+		theValueStr = fmt.Sprintf("%s%s", theValueStr, singleValueModified)
+
+		if i == len(theValue)-1 {
+			theValueStr = fmt.Sprintf("%s]", theValueStr)
+		} else {
+			theValueStr = fmt.Sprintf("%s,", theValueStr)
+		}
+
+	}
+	//fmt.Println("theValue: ", theValue)
+	fmt.Println("theValue: ", theValueStr)
+
 	fmt.Println("rootStr: ", rootStr)
 	fmt.Println("leafValue: ", leafValue)
 	//
