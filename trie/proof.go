@@ -18,8 +18,10 @@ package trie
 
 import (
 	"bytes"
+	"encoding/hex"
 	"errors"
 	"fmt"
+	"github.com/ethereum/go-ethereum/rlp"
 
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/ethdb"
@@ -122,6 +124,7 @@ func VerifyProof(rootHash common.Hash, key []byte, proofDb ethdb.KeyValueReader)
 		fmt.Println("for-for-for-for")
 
 		buf, _ := proofDb.Get(wantHash[:])
+		fmt.Println("PPPPPPPPPPP:", hex.EncodeToString(buf))
 		if buf == nil {
 			return nil, fmt.Errorf("proof node %d (hash %064x) missing", i, wantHash)
 		}
@@ -137,6 +140,10 @@ func VerifyProof(rootHash common.Hash, key []byte, proofDb ethdb.KeyValueReader)
 		case hashNode:
 			fmt.Println("hashNode-hashNode-hashNode")
 			fmt.Println("wantHash[:] ", cld[:])
+			var myMoze bytes.Buffer
+			myKivi := rlp.NewEncoderBuffer(&myMoze)
+			cld.encode(myKivi)
+			fmt.Println("KKKKKKKk: ", myKivi)
 			fmt.Println("wantHash[:] ", cld.String())
 			fmt.Println("hashNode-hashNode-hashNode")
 			key = keyrest
@@ -148,6 +155,58 @@ func VerifyProof(rootHash common.Hash, key []byte, proofDb ethdb.KeyValueReader)
 			fmt.Println("valueNode-valueNode-valueNode")
 			return cld, nil
 
+		}
+	}
+}
+
+// VerifyProof checks merkle proofs. The given proof must contain the value for
+// key in a trie with the given root hash. VerifyProof returns an error if the
+// proof contains invalid trie nodes or the wrong value.
+func VerifyProofV2(rootHash common.Hash, key []byte, proofDb ethdb.KeyValueReader) (theProof []string, rootStr string, leafValue string, err error) {
+	key = keybytesToHex(key)
+	wantHash := rootHash
+
+	rootStr = wantHash.Hex()
+
+	myProofs := make([]string, 0)
+
+	for i := 0; ; i++ {
+
+		buf, _ := proofDb.Get(wantHash[:])
+		bufStr := fmt.Sprintf("0x%s", hex.EncodeToString(buf))
+		myProofs = append(myProofs, bufStr)
+
+		if buf == nil {
+			return nil, "", "", fmt.Errorf("proof node %d (hash %064x) missing", i, wantHash)
+		}
+		n, err := decodeNode(wantHash[:], buf)
+
+		fmt.Println("bufStr: ", bufStr)
+		var heheh bytes.Buffer
+		haha := rlp.NewEncoderBuffer(&heheh)
+		n.encode(haha)
+		fmt.Println("n.encode(haha):", hex.EncodeToString(haha.ToBytes()))
+		fmt.Println("n.fstring(\"\"): ", n.fstring(""))
+
+		if err != nil {
+			return nil, "", "", fmt.Errorf("bad proof node %d: %v", i, err)
+		}
+		keyrest, cld := get(n, key, true)
+
+		switch cld := cld.(type) {
+		case nil:
+			// The trie doesn't contain the key.
+			return nil, "", "", nil
+		case hashNode:
+			key = keyrest
+			copy(wantHash[:], cld)
+		case valueNode:
+			leafValue = cld.String()
+			//var heheh2 bytes.Buffer
+			//haha2 := rlp.NewEncoderBuffer(&heheh2)
+			//n.encode(haha2)
+			//fmt.Println("n.encode(haha2):", hex.EncodeToString(haha2.ToBytes()))
+			return myProofs, rootStr, leafValue, nil
 		}
 	}
 }

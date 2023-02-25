@@ -2,6 +2,7 @@ package trie
 
 import (
 	"context"
+	"fmt"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/ethclient"
@@ -37,6 +38,12 @@ func (b *blockchainData) GetTxReceiptsOfABlock(ctx context.Context, blockHashStr
 	var receipts = make(types.Receipts, len(theBlock.Transactions()), len(theBlock.Transactions()))
 
 	for i, tx := range theBlock.Transactions() {
+		fmt.Println("index: ", i)
+		//fmt.Println("tx hash: ", tx.Hash().String())
+
+		if tx.Hash().String() == "0x4c8da45a7a7e7d4a358b5c7650031b55abc0a6038b87de7ee04a1195f21b2f58" {
+			fmt.Printf("\ntransaction with id: %s has index of %d\n", tx.Hash().String(), i)
+		}
 
 		theReceipt, err := b.client.TransactionReceipt(ctx, tx.Hash())
 		if err != nil {

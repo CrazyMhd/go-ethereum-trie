@@ -1116,7 +1116,12 @@ func khiar() {
 	fmt.Println("Before calling first api")
 
 	ctx := context.Background()
-	theReceipts, err := bd.GetTxReceiptsOfABlock(ctx, "0x574634b50a31a961d8cd4eb4f51142f0d66df9edd299ea8649b22fbe36b6abce")
+	//theReceipts, err := bd.GetTxReceiptsOfABlock(ctx, "0x574634b50a31a961d8cd4eb4f51142f0d66df9edd299ea8649b22fbe36b6abce")
+	//theReceipts, err := bd.GetTxReceiptsOfABlock(ctx, "0x608b8f365498190598ba67a8028f1ddd55f60917d3cb9c8ca0e1149b276399d6") //21
+	//theReceipts, err := bd.GetTxReceiptsOfABlock(ctx, "0x6579df2cdd4af4421c7579972d7e412f4692549360f2a77735c7a6f166fb0bac") //125
+	//theReceipts, err := bd.GetTxReceiptsOfABlock(ctx, "0x39a9230237781d52d034a3ef61ae5a5b776e60ded4e24f9c2422cbd7ce2806e7") // 53
+	//theReceipts, err := bd.GetTxReceiptsOfABlock(ctx, "0x833b111caa2c48a1607a5cb81a88b93c7dcc8711ea682e7b1f745313504c7538") // 119
+	theReceipts, err := bd.GetTxReceiptsOfABlock(ctx, "0xdd78ca7d6eca96350cb0133d49a85579fb11babeb09ba2edb3b3f38130450540") // 126
 	if err != nil {
 		fmt.Println(err)
 	}
@@ -1144,7 +1149,7 @@ func khiar() {
 	}
 
 	//var indexBuf []byte
-	indexBuf = rlp.AppendUint64(indexBuf[:0], uint64(1))
+	indexBuf = rlp.AppendUint64(indexBuf[:0], uint64(126))
 
 	theProof := proverFunc(indexBuf)
 
@@ -1153,12 +1158,20 @@ func khiar() {
 	fmt.Println(theProof)
 	fmt.Println("---------------")
 
-	theValue, err := VerifyProof(common.HexToHash("640cfc3185e06117ff24970a5849ad1186de516801af8fb05104e78700a8d89b"), indexBuf, theProof)
+	//theValue, err := VerifyProof(common.HexToHash("640cfc3185e06117ff24970a5849ad1186de516801af8fb05104e78700a8d89b"), indexBuf, theProof)
+	//if err != nil {
+	//	fmt.Println("the err: ", err)
+	//}
+
+	//theValue, err := VerifyProofV2(common.HexToHash("640cfc3185e06117ff24970a5849ad1186de516801af8fb05104e78700a8d89b"), indexBuf, theProof)
+	theValue, rootStr, leafValue, err := VerifyProofV2(receiptSha, indexBuf, theProof)
 	if err != nil {
 		fmt.Println("the err: ", err)
 	}
 
 	fmt.Println("theValue: ", theValue)
+	fmt.Println("rootStr: ", rootStr)
+	fmt.Println("leafValue: ", leafValue)
 	//
 	fmt.Println("receiptSha", receiptSha)
 }
