@@ -18,6 +18,7 @@ package trie
 
 import (
 	"bytes"
+	"encoding/hex"
 	"errors"
 	"fmt"
 
@@ -133,6 +134,47 @@ func VerifyProof(rootHash common.Hash, key []byte, proofDb ethdb.KeyValueReader)
 			copy(wantHash[:], cld)
 		case valueNode:
 			return cld, nil
+		}
+	}
+}
+
+// GetProof checks merkle proofs. The given proof must contain the value for
+// key in a trie with the given root hash. GetProof returns an error if the
+// proof contains invalid trie nodes or the wrong value. It also returns a
+// string array as proof, a string as root hash, and the leaf value
+func GetProof(rootHash common.Hash, key []byte, proofDb ethdb.KeyValueReader) (keyForProof string, rootStr string, proofs []string, leafValue string, err error) {
+	key = keybytesToHex(key)
+	keyForProof = hex.EncodeToString(key)
+
+	wantHash := rootHash
+	rootStr = wantHash.Hex()
+
+	proofs = make([]string, 0)
+
+	for i := 0; ; i++ {
+		buf, _ := proofDb.Get(wantHash[:])
+
+		bufStr := fmt.Sprintf("0x%s", hex.EncodeToString(buf))
+		proofs = append(proofs, bufStr)
+
+		if buf == nil {
+			return "", "", nil, "", fmt.Errorf("proof node %d (hash %064x) missing", i, wantHash)
+		}
+		n, err := decodeNode(wantHash[:], buf)
+		if err != nil {
+			return "", "", nil, "", fmt.Errorf("bad proof node %d: %v", i, err)
+		}
+		keyrest, cld := get(n, key, true)
+		switch cld := cld.(type) {
+		case nil:
+			// The trie doesn't contain the key.
+			return "", "", nil, "", nil
+		case hashNode:
+			key = keyrest
+			copy(wantHash[:], cld)
+		case valueNode:
+			leafValue = cld.String()
+			return keyForProof, rootStr, proofs, leafValue, nil
 		}
 	}
 }
