@@ -164,6 +164,8 @@ func VerifyProof(rootHash common.Hash, key []byte, proofDb ethdb.KeyValueReader)
 // proof contains invalid trie nodes or the wrong value.
 func VerifyProofV2(rootHash common.Hash, key []byte, proofDb ethdb.KeyValueReader) (theProof []string, rootStr string, leafValue string, err error) {
 	key = keybytesToHex(key)
+	fmt.Println("TheKey: ", hex.EncodeToString(key))
+
 	wantHash := rootHash
 
 	rootStr = wantHash.Hex()
